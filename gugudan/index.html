@@ -1,42 +1,10 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <titl>구구단</titl>
-        <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-        <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-        <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+        <title>구구단(gugudanUsinghooks)</title>
     </head>
     <body>
         <div id="root"></div>
-        <script type="text/babel">
-            class GuGudan extends React.Component{
-                constructor(props) {
-                    super(props);
-                    this.state = {
-                        first: Math.ceil(Math.random() * 9),
-                        second: Math.ceil(Math.random() * 9),
-                        value: '',
-                        result:''
-                    };
-                }
-
-
-                render(){
-                    return (
-                        <div>
-                            <div>{this.state.first}곱하기{this.state.second}는?</div>
-                            <form>
-                                <input type="number" value={this.state.value} onChange={(event)=>this.setState({value: event.target.value})} />
-                                    <button>입력</button>
-                            </form>
-                            <div>{this.state.result}</div>
-                        </div>
-                    );
-                }
-            }
-        </script>
-        <script type="text/babel">
-            ReactDOM.render.render(<GuGudan />,document.querySelector("#root"));
-        </script>
+        <script src="./Component/app.js"></script>
     </body>
 </html>
