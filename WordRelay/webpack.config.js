@@ -1,4 +1,6 @@
 const path = require("path");
+const RefreshWebpackPlugin = require("@pmmmwh/react-refresh-webpack-plugin");
+
 module.exports = {
     name: "word-relay-setting",
     mode: "development", //실서비스 : production
@@ -16,13 +18,31 @@ module.exports = {
             test: /\.jsx?/,     //js 와 jsx의 파일에 적용한다
             loader: "babel-loader",     //babel-loader 사용한다.
             options: {          //옵션은 얘네다
-                presets:["@babel/preset-env","@babel/preset-react"],
-            }
+                presets:[["@babel/preset-env",{
+                    targets:{
+                        browsers:['> 5% in KR'],
+                    },
+                    debug:true,
+                }],
+                "@babel/preset-react",
+            ],
+            plugins: [
+                "@babel/plugin-proposal-class-properties",
+                "react-refresh/babel"
+            ]}
         }]
     },
-
+    plugins: [
+        new RefreshWebpackPlugin(),
+    ],
     output: {
         path: path.join(__dirname,"dist"),
-        filename: "app.js"
-    }//출력
+        filename: "app.js",
+        publicPath: "/dist"         //가상경로
+    },//출력
+    devServer: {
+        devMiddleware:{publicPath:"/dist/"},     //웹펙 파일들이 생성되는 경로
+        static:{directory:path.resolve(__dirname)},//실제파일들 경로
+        hot:true
+    },
 };
