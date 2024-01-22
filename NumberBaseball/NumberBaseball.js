@@ -1,7 +1,41 @@
 import React,{Component} from "react";
 
-class NumberBaseball extends Component{
+function  getNumbers(){
 
+}
+class NumberBaseball extends Component{
+    state={
+        result : "",
+        value: "",
+        answer: getNumbers(),
+        tries :[],
+    }
+    oncSubmit =()=>{
+
+    };
+    onChangeInput=()=>{
+
+    };
+    render(){
+        return(
+            <>
+                <h1>{this.state.result}</h1>
+                <form onSubmit={this.onSubmitForm}>
+                    <input maxLength={4} value={this.state.value} onChange={this.onChangeInput}/>
+                </form>
+                <div>시도:{this.state.tries.state}</div>
+                <ul>
+                    {this.state.tries.map((v)=>{
+                        return(
+                            <li>{v}</li>
+                        )
+                    })}
+                </ul>
+
+            </>
+
+        )
+    }
 }
 
 export  const hello = 'hello'; //import { hello }
