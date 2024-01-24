@@ -2,7 +2,7 @@ const path = require("path");
 const RefreshWebpackPlugin = require("@pmmmwh/react-refresh-webpack-plugin");
 
 module.exports = {
-    name: "word-relay-setting",
+    name: "number-baseball-dev",
     mode: "development", //실서비스 : production
     devtool: "eval",
     resolve: {
@@ -27,9 +27,9 @@ module.exports = {
                 "@babel/preset-react",
             ],
             plugins: [
-                "@babel/plugin-proposal-class-properties",
                 "react-refresh/babel"
-            ]}
+            ]},
+            exclude: path.join(__dirname,"node_modules"),
         }]
     },
     plugins: [
@@ -41,7 +41,7 @@ module.exports = {
         publicPath: "/dist"         //가상경로
     },//출력
     devServer: {
-        devMiddleware:{publicPath:"/dist/"},     //웹펙 파일들이 생성되는 경로
+        devMiddleware:{publicPath:"/dist"},     //웹펙 파일들이 생성되는 경로
         static:{directory:path.resolve(__dirname)},//실제파일들 경로
         hot:true
     },
