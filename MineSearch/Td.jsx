@@ -58,7 +58,7 @@ const Td=({rowIndex,cellIndex})=>{
     return(
         <td
             style={getTdStyle(tableData[rowIndex][cellIndex])}
-            onClick={onClickTd}
+            onClick={onClickTd}//3:39
         >{getTdText(tableData[rowIndex][cellIndex])}</td>
     )
 }
