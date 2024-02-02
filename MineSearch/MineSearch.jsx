@@ -16,6 +16,7 @@ export const CODE = {
 
 export const TableContext =createContext({
     tableData:[],
+    halted:true,
     dispatch:()=>{
 
     },
@@ -24,10 +25,18 @@ const initialState = {
     tableData:[],
     timer:0,
     result:"",
+    halted:true,
 };
 
 export const START_GAME = "START_GAME";
 export const OPEN_CELL ="OPEN_CELL";
+export const CLICK_MINE = "CLICK_MINE";
+export const FLAG_CELL =  "FLAG_CELL";
+export const QUESTION_CELL = "QUESTION_CELL";
+export const NORMALIZE_CELL = "NORMALIZE_CELL";
+
+
+
 const plantMine = (row, cell, mine) => {
     console.log(row,cell,mine);
     const candidate = Array(row*cell).fill().map((arr,i)=>{
@@ -46,7 +55,7 @@ const plantMine = (row, cell, mine) => {
             rowData.push(CODE.NORMAL);
         }
     }
-    for(let k =0;k<shuffle.length;k++){
+    for(let k =0;k<shuffle.length;k++){k
         const ver = Math.floor(shuffle[k]/cell);
         const hor = shuffle[k] % cell;
         data[ver][hor] = CODE.MINE;
@@ -61,6 +70,7 @@ const reducer = (state,action)=>{
             return {
                 ...state,
                 tableData: plantMine(action.row,action.cell,action.mine),
+                halted: false,
             }
         case OPEN_CELL:{
             const tableData = [...state.tableData];
@@ -71,6 +81,57 @@ const reducer = (state,action)=>{
                 tableData,
             }
         }
+        case CLICK_MINE:{
+            const tableData = [...state.tableData];
+            tableData[action.row] = [...state.tableData[action.row]];
+            tableData[action.row][action.cell] = CODE.CLICKED_MINE;
+            return {
+                ...state,
+                tableData,
+                halted: true,
+            };
+        }
+        case FLAG_CELL:{
+            const tableData = [...state.tableData];
+            tableData[action.row] = [...state.tableData[action.row]];
+            if(tableData[action.row][action.cell]===CODE.MINE){
+                tableData[action.row][action.cell] = CODE.FLAG_MINE;
+            }else{
+                tableData[action.row][action.cell] = CODE.FLAG;
+            }
+            return {
+                ...state,
+                tableData,
+            };
+        }
+        case QUESTION_CELL: {
+            const tableData = [...state.tableData];
+            tableData[action.row] = [...state.tableData[action.row]];
+            if (tableData[action.row][action.cell] === CODE.FLAG_MINE) {
+                tableData[action.row][action.cell] = CODE.QUESTION_MINE;
+            } else {
+                tableData[action.row][action.cell] = CODE.QUESTION;
+            }
+            return {
+                ...state,
+                tableData,
+            };
+        }
+        case NORMALIZE_CELL: {
+            const tableData = [...state.tableData];
+            tableData[action.row] = [...state.tableData[action.row]];
+            if (tableData[action.row][action.cell] === CODE.QUESTION_MINE) {
+                tableData[action.row][action.cell] = CODE.MINE;
+            } else {
+                tableData[action.row][action.cell] = CODE.NORMAL;
+            }
+            return {
+                ...state,
+                tableData,
+            };
+        }
+
+
 
 
         default:
@@ -81,7 +142,7 @@ const MineSearch=()=>{
     const [state,dispatch] = useReducer(reducer,initialState);
 
     //contextAPI를 사용하면 최적화 하기 매우 힘듦 따라서 이렇게 useMemo로 한번 감싸서 캐싱 작업을 해줘야 한다.
-    const value = useMemo(()=>({ tableData: state.tableData, dispatch}),[state.tableData]);
+    const value = useMemo(()=>({ tableData: state.tableData, dispatch,halted:state.halted}),[state.tableData,state.halted]);
     return(
         <TableContext.Provider value={value}>
             <Form></Form>
