@@ -1,7 +1,6 @@
-import React, {createContext, useMemo, useReducer} from "react";
-import Table from "./Table";
-import Form from "./Form";
-
+import React, { useEffect, useReducer, createContext, useMemo } from 'react';
+import Table from './Table';
+import Form from './Form';
 
 export const CODE = {
     MINE: -7,
@@ -11,52 +10,49 @@ export const CODE = {
     QUESTION_MINE: -4,
     FLAG_MINE: -5,
     CLICKED_MINE: -6,
-    OPENED: 0,//0이상이면 opened
+    OPENED: 0, // 0 이상이면 다 opened
 };
 
-export const TableContext =createContext({
-    tableData:[],
-    halted:true,
-    dispatch:()=>{
-
-    },
+export const TableContext = createContext({
+    tableData: [],
+    halted: true,
+    dispatch: () => {},
 });
+
 const initialState = {
-    tableData:[],
-    timer:0,
-    result:"",
-    halted:true,
+    tableData: [],
+    data: {
+        row: 0,
+        cell: 0,
+        mine: 0,
+    },
+    timer: 0,
+    result: '',
+    halted: true,
+    openedCount: 0,
 };
-
-export const START_GAME = "START_GAME";
-export const OPEN_CELL ="OPEN_CELL";
-export const CLICK_MINE = "CLICK_MINE";
-export const FLAG_CELL =  "FLAG_CELL";
-export const QUESTION_CELL = "QUESTION_CELL";
-export const NORMALIZE_CELL = "NORMALIZE_CELL";
-
-
 
 const plantMine = (row, cell, mine) => {
-    console.log(row,cell,mine);
-    const candidate = Array(row*cell).fill().map((arr,i)=>{
+    console.log(row, cell, mine);
+    const candidate = Array(row * cell).fill().map((arr, i) => {
         return i;
     });
     const shuffle = [];
-    while (candidate.length > row *cell - mine){
-        const chosen = candidate.splice(Math.floor(Math.random() * candidate.length),1)[0];
+    while (candidate.length > row * cell - mine) {
+        const chosen = candidate.splice(Math.floor(Math.random() * candidate.length), 1)[0];
         shuffle.push(chosen);
     }
-    const data =[];
-    for(let i =0; i<row;i++){
+    const data = [];
+    for (let i = 0; i < row; i++) {
         const rowData = [];
         data.push(rowData);
-        for(let j = 0;j<cell;j++){
+        for (let j = 0; j < cell; j++) {
             rowData.push(CODE.NORMAL);
         }
     }
-    for(let k =0;k<shuffle.length;k++){k
-        const ver = Math.floor(shuffle[k]/cell);
+
+    for (let k = 0; k < shuffle.length; k++) {
+        const ver = Math.floor(shuffle[k] / cell);
         const hor = shuffle[k] % cell;
         data[ver][hor] = CODE.MINE;
     }
@@ -64,15 +60,32 @@ const plantMine = (row, cell, mine) => {
     console.log(data);
     return data;
 };
-const reducer = (state,action)=>{
-    switch (action.type){
+
+export const START_GAME = 'START_GAME';
+export const OPEN_CELL = 'OPEN_CELL';
+export const CLICK_MINE = 'CLICK_MINE';
+export const FLAG_CELL = 'FLAG_CELL';
+export const QUESTION_CELL = 'QUESTION_CELL';
+export const NORMALIZE_CELL = 'NORMALIZE_CELL';
+export const INCREMENT_TIMER = 'INCREMENT_TIMER';
+
+const reducer = (state, action) => {
+    switch (action.type) {
         case START_GAME:
             return {
                 ...state,
-                tableData: plantMine(action.row,action.cell,action.mine),
+                data: {
+                    row: action.row,
+                    cell: action.cell,
+                    mine: action.mine,
+                },
+                openedCount: 0,
+                tableData: plantMine(action.row, action.cell, action.mine),
+                result: '',
                 halted: false,
-            }
-        case OPEN_CELL:{
+                timer: 0,
+            };
+        case OPEN_CELL: {
             const tableData = [...state.tableData];
             tableData.forEach((row, i) => {
                 tableData[i] = [...row];
@@ -133,12 +146,22 @@ const reducer = (state,action)=>{
                 tableData[row][cell] = count;
             };
             checkAround(action.row, action.cell);
+            let halted = false;
+            let result = '';
+            console.log(state.data.row * state.data.cell - state.data.mine, state.openedCount, openedCount);
+            if (state.data.row * state.data.cell - state.data.mine === state.openedCount + openedCount) { // 승리
+                halted = true;
+                result = `${state.timer}초만에 승리하셨습니다`;
+            }
             return {
                 ...state,
                 tableData,
-            }
+                openedCount: state.openedCount + openedCount,
+                halted,
+                result,
+            };
         }
-        case CLICK_MINE:{
+        case CLICK_MINE: {
             const tableData = [...state.tableData];
             tableData[action.row] = [...state.tableData[action.row]];
             tableData[action.row][action.cell] = CODE.CLICKED_MINE;
@@ -148,12 +171,12 @@ const reducer = (state,action)=>{
                 halted: true,
             };
         }
-        case FLAG_CELL:{
+        case FLAG_CELL: {
             const tableData = [...state.tableData];
             tableData[action.row] = [...state.tableData[action.row]];
-            if(tableData[action.row][action.cell]===CODE.MINE){
+            if (tableData[action.row][action.cell] === CODE.MINE) {
                 tableData[action.row][action.cell] = CODE.FLAG_MINE;
-            }else{
+            } else {
                 tableData[action.row][action.cell] = CODE.FLAG;
             }
             return {
@@ -187,27 +210,43 @@ const reducer = (state,action)=>{
                 tableData,
             };
         }
-
-
-
-
+        case INCREMENT_TIMER: {
+            return {
+                ...state,
+                timer: state.timer + 1,
+            }
+        }
         default:
             return state;
     }
 };
-const MineSearch=()=>{
-    const [state,dispatch] = useReducer(reducer,initialState);
 
-    //contextAPI를 사용하면 최적화 하기 매우 힘듦 따라서 이렇게 useMemo로 한번 감싸서 캐싱 작업을 해줘야 한다.
-    const value = useMemo(()=>({ tableData: state.tableData, dispatch,halted:state.halted}),[state.tableData,state.halted]);
-    return(
+const MineSearch = () => {
+    const [state, dispatch] = useReducer(reducer, initialState);
+    const { tableData, halted, timer, result } = state;
+
+    const value = useMemo(() => ({ tableData, halted, dispatch }), [tableData, halted]);
+
+    useEffect(() => {
+        let timer;
+        if (halted === false) {
+            timer = setInterval(() => {
+                dispatch({ type: INCREMENT_TIMER });
+            }, 1000);
+        }
+        return () => {
+            clearInterval(timer);
+        }
+    }, [halted]);
+
+    return (
         <TableContext.Provider value={value}>
-            <Form></Form>
-            <div>{state.timer}</div>
-            <Table></Table>
-            <div>{state.result}</div>
+            <Form />
+            <div>{timer}</div>
+            <Table />
+            <div>{result}</div>
         </TableContext.Provider>
-    )
+    );
 };
 
 export default MineSearch;

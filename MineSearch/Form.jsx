@@ -18,7 +18,7 @@ const Form=()=>{
     },[]);
     const onClickBtn = useCallback((e)=>{
         dispatch({type:START_GAME, row,cell,mine})
-    },[]);
+    },[row,cell,mine]);
 
 
     return(
